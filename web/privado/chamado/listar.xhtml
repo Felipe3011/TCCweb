@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:b="http://bootsfaces.net/ui">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Chamados</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <h:panelGroup rendered="#{!controleChamado.editando}">
+                    <p:messages/>
+
+                    <p:commandButton value="Novo" icon="ui-icon-plus"
+                                     actionListener="#{controleChamado.novo()}"
+                                     update="formListagem formEdicao"/>
+
+                    <b:dropMenu value="Relatórios">
+                        <p:commandButton value="Todos os Chamados"
+                                         action="#{controleChamado.relatorioTodos()}"
+                                         ajax="false" onclick="this.form.target = '_blank';"/>
+                        <p:commandButton value="Chamados Finalizados"
+                                         action="#{controleChamado.relatorioFinalizados()}"
+                                         ajax="false" onclick="this.form.target = '_blank';"/>
+                        <p:commandButton value="Chamados Não Finalizados"
+                                         action="#{controleChamado.relatorioNaoFinalizados()}"
+                                         ajax="false" onclick="this.form.target = '_blank';"/>
+                    </b:dropMenu>
+
+                    <!-- FILTROS -->
+                    <div align="center"> 
+                        <p:defaultCommand target="filtrar"/>
+                        <p:panelGrid columns="11">
+                            <p:outputLabel value="Ordem: "/>
+                            <p:selectOneMenu id="ordem" value="#{controleChamado.dao.ordem}">
+                                <f:selectItem itemLabel="Data Abertura" itemValue="dataAbertura"/>
+                                <f:selectItem itemLabel="Data Fechamento" itemValue="dataFechamento"/>
+                                <f:selectItem itemLabel="Prioridade" itemValue="prioridade.nome"/>
+                                <f:selectItem itemLabel="Usuário" itemValue="usuario.nome"/>
+                                <p:ajax update="formListagem" />
+                            </p:selectOneMenu>
+                            <p:outputLabel value="Filtro: "/>                        
+                            <p:inputText value="#{controleChamado.dao.filtro}">
+                                <p:ajax update="listagem listagem2" event="blur"/>
+                            </p:inputText>                       
+                            <p:commandButton value="Filtrar" update="listagem listagem2" id="filtrar"
+                                             icon="ui-icon-search"/>
+                            <p:outputLabel value="Máximo de objetos:"/>
+                            <p:inputNumber value="#{controleChamado.dao.maximoObjetos}"
+                                           size="3"
+                                           thousandSeparator="" decimalSeparator=""
+                                           decimalPlaces="0">
+                                <p:ajax event="keyup" update="listagem listagem2"/>
+                            </p:inputNumber>
+                            <p:commandButton actionListener="#{controleChamado.dao.primeiro()}"
+                                             icon="ui-icon-seek-first" title="Primeiro"
+                                             update="listagem listagem2"/>
+                            <p:commandButton actionListener="#{controleChamado.dao.anterior()}"
+                                             icon="ui-icon-seek-prev" title="Anterior"
+                                             update="listagem listagem2"/>
+                            <p:commandButton actionListener="#{controleChamado.dao.proximo()}"
+                                             icon="ui-icon-seek-next" title="Próximo"
+                                             update="listagem listagem2"/>                        
+                            <p:commandButton actionListener="#{controleChamado.dao.ultimo()}"
+                                             icon="ui-icon-seek-end" title="Ultimo"
+                                             update="listagem listagem2"/>                        
+                        </p:panelGrid>                        
+                    </div>
+                    <!-- FIM FILTROS -->
+
+                    <!-- Lista todos os objetos para o ADMINISTRADOR -->
+                    <p:dataTable value="#{controleChamado.dao.listaNaoFinalizados}" var="obj"
+                                 reflow="true" id="listagem" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Descrição">
+                            <p:outputLabel value="#{obj.descricao}"/>
+                        </p:column> 
+                        <p:column headerText="Data Abertura">
+                            <p:outputLabel value="#{obj.dataAbertura}" converter="converterCalendar"/>
+                        </p:column>
+                        <p:column headerText="Data Fechamento" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                            <p:outputLabel value="#{obj.dataFechamento}" converter="converterCalendar"/>                            
+                        </p:column>
+                        <p:column headerText="Prioridade">
+                            <p:outputLabel value="#{obj.prioridade.nome}"/>
+                        </p:column> 
+                        <p:column headerText="Resolução">
+                            <p:outputLabel value="#{obj.resolucao}"/>
+                        </p:column> 
+                        <p:column headerText="Usuario">
+                            <p:outputLabel value="#{obj.usuario.nome}"/>
+                        </p:column>
+                        <p:column headerText="Status">
+                            <p:outputLabel value="#{obj.status}"/>
+                        </p:column>
+                        <p:column headerText="Finalizado">
+                            <p:outputLabel value="#{obj.finalizado}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleChamado.alterar(obj.id)}"
+                                                 process="@this"
+                                                 update="formEdicao formListagem"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleChamado.excluir(obj.id)}"
+                                                 process="@this"
+                                                 update="formListagem"/>
+                                <p:commandButton icon="ui-icon-check"
+                                                 actionListener="#{controleChamado.finalizar(obj.id)}"
+                                                 process="@this" update="formListagem"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                    <!-- FIM Lista ADMINISTRADOR -->
+
+                    <!-- LISTA Objetos do Usuário Logado -->
+                    <p:dataTable value="#{controleChamado.dao.getUsuAutenticadoChamados(controleLogin.usuarioAutenticado.login)}" var="obj"
+                                 reflow="true" id="listagem2" rendered="#{!p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Descrição">
+                            <p:outputLabel value="#{obj.descricao}"/>
+                        </p:column> 
+                        <p:column headerText="Data Abertura">
+                            <p:outputLabel value="#{obj.dataAbertura}" converter="converterCalendar"/>
+                        </p:column>
+                        <p:column headerText="Data Fechamento" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                            <p:outputLabel value="#{obj.dataFechamento}" converter="converterCalendar"/>                            
+                        </p:column>
+                        <p:column headerText="Prioridade">
+                            <p:outputLabel value="#{obj.prioridade.nome}"/>
+                        </p:column> 
+                        <p:column headerText="Resolução">
+                            <p:outputLabel value="#{obj.resolucao}"/>
+                        </p:column> 
+                        <p:column headerText="Usuario">
+                            <p:outputLabel value="#{obj.usuario.nome}"/>
+                        </p:column>
+                        <p:column headerText="Status">
+                            <p:outputLabel value="#{obj.status}"/>
+                        </p:column>
+                        <p:column headerText="Finalizado">
+                            <p:outputLabel value="#{obj.finalizado}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleChamado.alterar(obj.id)}"
+                                                 process="@this"
+                                                 update="formEdicao formListagem"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleChamado.excluir(obj.id)}"
+                                                 process="@this"
+                                                 update="formListagem"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                    <!-- FIM Lista Usuário Logado -->
+
+                </h:panelGroup>
+            </h:form>            
+            <ui:include src="formulario.xhtml"/>
+        </ui:define>
+    </ui:composition>
+</html>
+

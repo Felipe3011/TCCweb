@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <h:form id="formEdicao">
+        <h:panelGroup rendered="#{controleEquipamento.editando}">
+            <div class="ui-fluid">
+                <p:messages id="messages"/>
+                <p:panelGrid columns="2" columnClasses="ui-grid-col-2, ui-grid-col-20"
+                             layout="grid" styleClass="ui-panelgrid-blank">
+                    <f:facet name="header">
+                        <p:outputLabel value="Edição de Equipamento"/>
+                    </f:facet>
+                    <p:outputLabel value="Patrimônio" for="txtPatrimonio"/>
+                    <p:inputText id="txtPatrimonio" value="#{controleEquipamento.objeto.patrimonio}"
+                                 size="20" maxlength="20" required="true" 
+                                 requiredMessage="O número do patrimônio deve ser informado">
+                        <p:ajax process="@this" update="@this, messages"
+                                listener="#{controleEquipamento.verificaUnicidadePatrimonio()}"
+                                event="blur"/>
+                    </p:inputText>
+                    <p:outputLabel value="Nome" for="txtNome"/>
+                    <p:inputText id="txtNome" value="#{controleEquipamento.objeto.nome}"
+                                 size="40" maxlength="40"
+                                 required="true"
+                                 requiredMessage="O nome deve ser informado"/>
+                    <p:outputLabel value="Status" for="txtStatus"/>
+                    <p:inputText id="txtStatus" value="#{controleEquipamento.objeto.status}"
+                                 size="40" maxlength="40" required="true"
+                                 requiredMessage="O status deve ser informado"/>
+                    <p:outputLabel value="Setor" for="selectSetor"/>
+                    <p:selectOneMenu id="selectSetor" value="#{controleEquipamento.objeto.setor}"
+                                     filter="true" filterMatchMode="startsWith"
+                                     required="true" requiredMessage="O setor deve ser informado" >
+                        <f:converter converterId="converterSetor"/>
+                        <f:selectItem noSelectionOption="true"
+                                      itemLabel="Selecione um registro"/>
+                        <f:selectItems value="#{controleEquipamento.daoSetor.listaTodos}"
+                                       var="set" itemLabel="#{set.nome}"/>
+                    </p:selectOneMenu>
+                    <p:commandButton value="Salvar" icon="ui-icon-disk"
+                                     actionListener="#{controleEquipamento.salvar()}"
+                                     update="formEdicao formListagem"/>
+
+                </p:panelGrid>
+                <h:panelGroup id="painelConserto" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                    <p:panelGrid columns="2" columnClasses="ui-grid-col-2, ui-grid-col-20"
+                                 layout="grid" styleClass="ui-panelgrid-blank"
+                                 rendered="#{controleEquipamento.editandoConserto}">
+                        <f:facet name="header">
+                            <p:outputLabel value="Novo Conserto"/>
+                        </f:facet>
+                        <p:outputLabel value="Problema" for="txtProblema"/>
+                        <p:inputText id="txtProblema" value="#{controleEquipamento.conserto.problema}"
+                                     size="40" maxlength="40" required="true"
+                                     requiredMessage="O nome deve ser informado"/>
+
+                        <p:outputLabel value="Data Foi" for="txtDataFoiConserto"/>                    
+                        <p:calendar id="txtDataFoiConserto" value="#{controleEquipamento.conserto.dataFoiConserto}"
+                                    size="20" maxlength="20" mask="true" required="true"
+                                    pattern="dd/MM/yyyy" navigator="true">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:calendar>
+
+                        <p:outputLabel value="Data Voltou" for="txtDataVoltouConserto"/>                    
+                        <p:calendar id="txtDataVoltouConserto" value="#{controleEquipamento.conserto.dataVoltouConserto}"
+                                    size="20" maxlength="20" mask="true" 
+                                    pattern="dd/MM/yyyy" navigator="true">
+                            <f:converter converterId="converterCalendar"/>
+                        </p:calendar>
+
+                        <p:outputLabel value="Nome Empresa" for="txtNomeEmpresa"/>
+                        <p:inputText id="txtNomeEmpresa" value="#{controleEquipamento.conserto.nomeEmpresa}"
+                                     size="40" maxlength="40" required="true"
+                                     requiredMessage="O nome deve ser informado"/>
+
+                        <p:outputLabel value="Valor Conserto" for="txtValorConserto"/>
+                        <p:inputText id="txtValorConserto" value="#{controleEquipamento.conserto.valorConserto}"
+                                     size="40" maxlength="40"
+                                     requiredMessage="O nome deve ser informado"/>
+
+                        <p:commandButton value="Salvar Conserto"
+                                         icon="ui-icon-disk"
+                                         actionListener="#{controleEquipamento.salvarConserto()}"
+                                         id="btnSalvarConserto"
+                                         process="btnSalvarConserto @form"
+                                         update="painelConserto listagemConserto messages"/>
+                    </p:panelGrid>                    
+                </h:panelGroup>                
+            </div>
+            <h:panelGroup id="listagemConserto">
+                <h:panelGroup rendered="#{!controleEquipamento.editandoConserto}">
+                    <p:commandButton value="Novo Conserto" icon="ui-icon-plus"
+                                     actionListener="#{controleEquipamento.novoConserto()}"
+                                     update="listagemConserto painelConserto"
+                                     process="@this"/>
+                    <p:dataTable value="#{controleEquipamento.objeto.consertos}"
+                                 var="cons" reflow="true" rowIndexVar="idx">
+                        <f:facet name="header">
+                            <p:outputLabel value="Consertos"/>
+                        </f:facet>
+                        <p:column headerText="Problema">
+                            <p:outputLabel value="#{cons.problema}"/>
+                        </p:column>
+                        <p:column headerText="Valor">
+                            <p:outputLabel value="#{cons.valorConserto}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleEquipamento.editarConserto(idx)}"
+                                                 id="btnAlterar"
+                                                 process="btnAlterar @this" update="@form"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleEquipamento.removerConserto(idx)}"
+                                                 process="@this" update="@form"/>                                                 
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:panelGroup>
+    </h:form>
+</html>
+

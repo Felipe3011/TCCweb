@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Consertos</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <h:panelGroup rendered="#{!controleConserto.editando}">
+                    <p:messages/>
+                    <p:commandButton value="Novo" icon="ui-icon-plus"
+                                     actionListener="#{controleConserto.novo()}"
+                                     update="formListagem formEdicao"/>
+                    <div align="center" style="width: 100%"> 
+                    <p:defaultCommand target="filtrar"/>
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleConserto.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id"/>
+                            <f:selectItem itemLabel="Nome" itemValue="nome"/>
+                            <p:ajax update="formListagem" />
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>                        
+                        <p:inputText value="#{controleConserto.dao.filtro}">
+                            <p:ajax update="formListagem" event="blur"/>
+                        </p:inputText>                       
+                        <p:commandButton value="Filtrar" update="formListagem" id="filtrar"
+                                         icon="ui-icon-search"/>
+                        <p:outputLabel value="Máximo de objetos:"/>
+                        <p:inputNumber value="#{controleConserto.dao.maximoObjetos}"
+                                       size="3"
+                                       thousandSeparator="" decimalSeparator=""
+                                       decimalPlaces="0">
+                            <p:ajax event="keyup" update="formListagem"/>
+                        </p:inputNumber>
+                        <p:commandButton actionListener="#{controleConserto.dao.primeiro()}"
+                                         icon="ui-icon-seek-first" title="Primeiro"
+                                         update="formListagem"/>
+                        <p:commandButton actionListener="#{controleConserto.dao.anterior()}"
+                                         icon="ui-icon-seek-prev" title="Anterior"
+                                         update="formListagem"/>
+                        <p:commandButton actionListener="#{controleConserto.dao.proximo()}"
+                                         icon="ui-icon-seek-next" title="Próximo"
+                                         update="formListagem"/>                        
+                        <p:commandButton actionListener="#{controleConserto.dao.ultimo()}"
+                                         icon="ui-icon-seek-end" title="Ultimo"
+                                         update="formListagem"/>                        
+                    </p:panelGrid>                        
+                </div>
+                    <p:dataTable value="#{controleConserto.dao.listaObjetos}" var="obj"
+                                 reflow="true">
+                        <p:column headerText="ID">
+                            <p:outputLabel value="#{obj.id}"/>
+                        </p:column>
+                        <p:column headerText="Problema">
+                            <p:outputLabel value="#{obj.problema}"/>
+                        </p:column> 
+                        <p:column headerText="Data Foi">
+                            <p:outputLabel value="#{obj.dataFoiConserto}" converter="converterCalendar"/>
+                        </p:column> 
+                        <p:column headerText="Data Voltou">
+                            <p:outputLabel value="#{obj.dataVoltouConserto}" converter="converterCalendar"/>
+                        </p:column> 
+                        <p:column headerText="Nome Empresa">
+                            <p:outputLabel value="#{obj.nomeEmpresa}"/>
+                        </p:column> 
+                        <p:column headerText="Valor Conserto">
+                            <p:outputLabel value="#{obj.valorConserto}"/>
+                        </p:column> 
+                        
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleConserto.alterar(obj.id)}"
+                                                 process="@this"
+                                                 update="formEdicao formListagem"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleEquipamento.removerConserto(obj.id)}"
+                                                 process="@this"
+                                                 update="formListagem"
+                                                 rendered="#{p:ifGranted('ADMINISTRADOR')}"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:form>
+            <ui:include src="formulario.xhtml"/>
+        </ui:define>
+    </ui:composition>
+</html>
+

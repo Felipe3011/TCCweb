@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Usuarios</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <h:panelGroup rendered="#{!controleUsuario.editando}">
+                    <p:messages/>
+                    <p:commandButton value="Novo" icon="ui-icon-plus"
+                                     actionListener="#{controleUsuario.novo()}"
+                                     update="formListagem formEdicao"/>
+                    <div align="center" style="width: 100%"> 
+                    <p:defaultCommand target="filtrar"/>
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleUsuario.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id"/>
+                            <f:selectItem itemLabel="Nome" itemValue="nome"/>
+                            <f:selectItem itemLabel="Setor" itemValue="setor.nome"/>                            
+                            <p:ajax update="formListagem" />
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>                        
+                        <p:inputText value="#{controleUsuario.dao.filtro}">
+                            <p:ajax update="listagem listagem2" event="blur"/>
+                        </p:inputText>                       
+                        <p:commandButton value="Filtrar" update="listagem listagem2" id="filtrar"
+                                         icon="ui-icon-search"/>
+                        <p:outputLabel value="Máximo de objetos:"/>
+                        <p:inputNumber value="#{controleUsuario.dao.maximoObjetos}"
+                                       size="3"
+                                       thousandSeparator="" decimalSeparator=""
+                                       decimalPlaces="0">
+                            <p:ajax event="keyup" update="listagem listagem2"/>
+                        </p:inputNumber>
+                        <p:commandButton actionListener="#{controleUsuario.dao.primeiro()}"
+                                         icon="ui-icon-seek-first" title="Primeiro"
+                                         update="listagem listagem2"/>
+                        <p:commandButton actionListener="#{controleUsuario.dao.anterior()}"
+                                         icon="ui-icon-seek-prev" title="Anterior"
+                                         update="listagem listagem2"/>
+                        <p:commandButton actionListener="#{controleUsuario.dao.proximo()}"
+                                         icon="ui-icon-seek-next" title="Próximo"
+                                         update="listagem listagem2"/>                        
+                        <p:commandButton actionListener="#{controleUsuario.dao.ultimo()}"
+                                         icon="ui-icon-seek-end" title="Ultimo"
+                                         update="listagem listagem2"/>                        
+                    </p:panelGrid>                        
+                </div>
+                    <p:dataTable value="#{controleUsuario.dao.listaObjetos}" var="obj"
+                                 reflow="true" id="listagem" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Nome Usuario">
+                            <p:outputLabel value="#{obj.login}"/>
+                        </p:column>
+                        <p:column headerText="Nome">
+                            <p:outputLabel value="#{obj.nome}"/>
+                        </p:column>
+                        <p:column headerText="Email">
+                            <p:outputLabel value="#{obj.email}"/>
+                        </p:column>                        
+                        <p:column headerText="Setor">
+                            <p:outputLabel value="#{obj.setor.nome}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleUsuario.alterar(obj.login)}"
+                                                 process="@this"
+                                                 update="formEdicao formListagem"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleUsuario.excluir(obj.login)}"
+                                                 process="@this"
+                                                 update="formListagem"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                    
+                    <p:dataTable value="#{controleUsuario.dao.getUsuAutenticadoUsuario(controleLogin.usuarioAutenticado.login)}" var="obj"
+                                 reflow="true" id="listagem2" rendered="#{!p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Nome Usuario">
+                            <p:outputLabel value="#{obj.login}"/>
+                        </p:column>
+                        <p:column headerText="Nome">
+                            <p:outputLabel value="#{obj.nome}"/>
+                        </p:column>
+                        <p:column headerText="Email">
+                            <p:outputLabel value="#{obj.email}"/>
+                        </p:column>                        
+                        <p:column headerText="Setor" >
+                            <p:outputLabel value="#{obj.setor.nome}"/>
+                        </p:column>
+                        <p:column headerText="Ações">
+                            <div align="center">
+                                <p:commandButton icon="ui-icon-pencil"
+                                                 actionListener="#{controleUsuario.alterar(obj.login)}"
+                                                 process="@this"
+                                                 update="formEdicao formListagem"/>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 actionListener="#{controleUsuario.excluir(obj.login)}"
+                                                 process="@this"
+                                                 update="formListagem"/>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                </h:panelGroup>
+            </h:form>
+            <ui:include src="formulario.xhtml"/>
+        </ui:define>
+    </ui:composition>
+</html>
+

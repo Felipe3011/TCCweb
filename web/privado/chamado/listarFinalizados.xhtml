@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Chamados</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem">
+                <h:panelGroup rendered="#{!controleChamado.editando}">
+                    <p:messages/>
+
+                    <p:commandButton value="Novo" icon="ui-icon-plus"
+                                     actionListener="#{controleChamado.novo()}"
+                                     update="formListagem formEdicao"/>
+
+                    <!-- FILTROS -->
+                    <div align="center"> 
+                        <p:defaultCommand target="filtrar"/>
+                        <p:panelGrid columns="11">
+                            <p:outputLabel value="Ordem: "/>
+                            <p:selectOneMenu id="ordem" value="#{controleChamado.dao.ordem}">
+                                <f:selectItem itemLabel="Data Abertura" itemValue="dataAbertura"/>
+                                <f:selectItem itemLabel="Data Fechamento" itemValue="dataFechamento"/>
+                                <f:selectItem itemLabel="Prioridade" itemValue="prioridade.nome"/>
+                                <f:selectItem itemLabel="Usuário" itemValue="usuario.nome"/>
+                                <p:ajax update="formListagem" />
+                            </p:selectOneMenu>
+                            <p:outputLabel value="Filtro: "/>                        
+                            <p:inputText value="#{controleChamado.dao.filtro}">
+                                <p:ajax update="listagem listagem2 " event="blur"/>
+                            </p:inputText>                       
+                            <p:commandButton value="Filtrar" update="listagem listagem2 " id="filtrar"
+                                             icon="ui-icon-search"/>
+                            <p:outputLabel value="Máximo de objetos:"/>
+                            <p:inputNumber value="#{controleChamado.dao.maximoObjetos}"
+                                           size="3"
+                                           thousandSeparator="" decimalSeparator=""
+                                           decimalPlaces="0">
+                                <p:ajax event="keyup" update="listagem listagem2 "/>
+                            </p:inputNumber>
+                            <p:commandButton actionListener="#{controleChamado.dao.primeiro()}"
+                                             icon="ui-icon-seek-first" title="Primeiro"
+                                             update="listagem listagem2 "/>
+                            <p:commandButton actionListener="#{controleChamado.dao.anterior()}"
+                                             icon="ui-icon-seek-prev" title="Anterior"
+                                             update="listagem listagem2 "/>
+                            <p:commandButton actionListener="#{controleChamado.dao.proximo()}"
+                                             icon="ui-icon-seek-next" title="Próximo"
+                                             update="listagem listagem2 "/>                        
+                            <p:commandButton actionListener="#{controleChamado.dao.ultimo()}"
+                                             icon="ui-icon-seek-end" title="Ultimo"
+                                             update="listagem listagem2 "/>                        
+                        </p:panelGrid>                        
+                    </div>
+                    <!-- FIM FILTROS -->
+                    
+                    <!-- Lista todos Chamados Finalizados ADMINISTRADOR -->
+                    <p:dataTable value="#{controleChamado.dao.listaFinalizados}" var="obj"
+                                 reflow="true" id="listagem" rendered="#{p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Descrição">
+                            <p:outputLabel value="#{obj.descricao}"/>
+                        </p:column> 
+                        <p:column headerText="Data Abertura">
+                            <p:outputLabel value="#{obj.dataAbertura}" converter="converterCalendar"/>
+                        </p:column>
+                        <p:column headerText="Data Fechamento">
+                            <p:outputLabel value="#{obj.dataFechamento}" converter="converterCalendar"/>                            
+                        </p:column>
+                        <p:column headerText="Prioridade">
+                            <p:outputLabel value="#{obj.prioridade.nome}"/>
+                        </p:column> 
+                        <p:column headerText="Resolução">
+                            <p:outputLabel value="#{obj.resolucao}"/>
+                        </p:column> 
+                        <p:column headerText="Usuario">
+                            <p:outputLabel value="#{obj.usuario.nome}"/>
+                        </p:column>
+                        <p:column headerText="Status">
+                            <p:outputLabel value="#{obj.status}"/> 
+                        </p:column>
+                        <p:column headerText="Finalizado">
+                            <p:outputLabel value="#{obj.finalizado}"/> 
+                        </p:column>
+                    </p:dataTable>
+                    <!-- FIM Lista Objetos -->
+                    
+                    <p:dataTable value="#{controleChamado.dao.getListaFinalizadosUsu(controleLogin.usuarioAutenticado.login)}" var="obj"
+                                 reflow="true" id="listagem2" rendered="#{!p:ifGranted('ADMINISTRADOR')}">
+                        <p:column headerText="Descrição">
+                            <p:outputLabel value="#{obj.descricao}"/>
+                        </p:column> 
+                        <p:column headerText="Data Abertura">
+                            <p:outputLabel value="#{obj.dataAbertura}" converter="converterCalendar"/>
+                        </p:column>
+                        <p:column headerText="Data Fechamento">
+                            <p:outputLabel value="#{obj.dataFechamento}" converter="converterCalendar"/>                            
+                        </p:column>
+                        <p:column headerText="Prioridade">
+                            <p:outputLabel value="#{obj.prioridade.nome}"/>
+                        </p:column> 
+                        <p:column headerText="Resolução">
+                            <p:outputLabel value="#{obj.resolucao}"/>
+                        </p:column> 
+                        <p:column headerText="Usuario">
+                            <p:outputLabel value="#{obj.usuario.nome}"/>
+                        </p:column>
+                        <p:column headerText="Status">
+                            <p:outputLabel value="#{obj.status}"/> 
+                        </p:column>
+                        <p:column headerText="Finalizado">
+                            <p:outputLabel value="#{obj.finalizado}"/> 
+                        </p:column>
+                    </p:dataTable>
+                    <!-- FIM Lista Objetos -->
+                    
+                </h:panelGroup>
+            </h:form>            
+            <ui:include src="formulario.xhtml"/>
+        </ui:define>
+
+    </ui:composition>
+</html>
+
